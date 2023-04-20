@@ -62,3 +62,76 @@ def submit_form():
 if __name__ == '__main__':
     app.run()
 
+
+
+
+
+
+##############$
+
+
+from flask import Flask, render_template, request, redirect, url_for, flash
+from flask_mysqldb import MySQL
+import pdfkit
+import subprocess
+
+app = Flask(__name__)
+app.secret_key = 'secret_key'
+
+# MySQL Configuration
+app.config['MYSQL_HOST'] = 'localhost'
+app.config['MYSQL_USER'] = 'username'
+app.config['MYSQL_PASSWORD'] = 'password'
+app.config['MYSQL_DB'] = 'database_name'
+mysql = MySQL(app)
+
+# Route for the input form
+@app.route('/', methods=['GET', 'POST'])
+def input_form():
+    if request.method == 'POST':
+        name = request.form['name']
+        email = request.form['email']
+        comments = request.form['comments']
+        phone_number = request.form['phone_number']
+        date_of_birth = request.form['date_of_birth']
+        age = request.form['age']
+        cur = mysql.connection.cursor()
+        cur.execute("INSERT INTO form_data(name, email, comments, phone_number, date_of_birth, age) VALUES (%s, %s, %s, %s, %s, %s)", (name, email, comments, phone_number, date_of_birth, age))
+        mysql.connection.commit()
+        cur.close()
+        flash('Form data has been saved successfully!', 'success')
+        return redirect(url_for('input_form'))
+    else:
+        cur = mysql.connection.cursor()
+        cur.execute("SELECT * FROM form_fields")
+        fields = cur.fetchall()
+        cur.close()
+        return render_template('index.html', fields=fields)
+
+# Route for generating the PDF file and sending it as an email
+@app.route('/submit', methods=['POST'])
+def submit():
+    name = request.form['name']
+    email = request.form['email']
+    comments = request.form['comments']
+    phone_number = request.form['phone_number']
+    date_of_birth = request.form['date_of_birth']
+    age = request.form['age']
+    form_data = {
+        'Name': name,
+        'Email': email,
+        'Comments': comments,
+        'Phone Number': phone_number,
+        'Date of Birth': date_of_birth,
+        'Age': age
+    }
+    html = render_template('pdf_template.html', form_data=form_data)
+    pdf_file = 'form_data.pdf'
+    pdfkit.from_string(html, pdf_file)
+    command = 'echo "Please find attached the form data" | mailx -s "Form Data" -a "{}" {}'.format(pdf_file, email)
+    subprocess.call(command, shell=True)
+    flash('Form data has been saved and emailed successfully!', 'success')
+    return redirect(url_for('input_form'))
+
+if __name__ == '__main__':
+    app.run(debug=True)
