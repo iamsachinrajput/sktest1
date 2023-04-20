@@ -212,3 +212,57 @@ if __name__ == '__main__':
     </table>
 </body>
 </html>
+
+################
+
+from flask import Flask, render_template, request, make_response
+from flask_mysqldb import MySQL
+import pdfkit
+
+app = Flask(__name__)
+app.config['MYSQL_HOST'] = 'localhost'
+app.config['MYSQL_USER'] = 'root'
+app.config['MYSQL_PASSWORD'] = 'password'
+app.config['MYSQL_DB'] = 'mydatabase'
+
+mysql = MySQL(app)
+
+
+@app.route('/')
+def index():
+    cur = mysql.connection.cursor()
+    cur.execute("SELECT * FROM form_fields")
+    form_fields = [{'name': row[1], 'field_name': row[2], 'type': row[3]} for row in cur.fetchall()]
+    cur.close()
+    return render_template('index.html', form_fields=form_fields)
+
+
+@app.route('/submit-form', methods=['POST'])
+def submit_form():
+    cur = mysql.connection.cursor()
+    cur.execute("SELECT * FROM form_fields")
+    form_fields = [{'name': row[1], 'field_name': row[2], 'type': row[3]} for row in cur.fetchall()]
+    cur.close()
+
+    form_data = {}
+    for field in form_fields:
+        form_data[field['name']] = request.form.get(field['field_name'], '')
+
+    # Create PDF using form data and PDF template
+    pdf_html = render_template('pdf_template.html', form_data=form_data)
+    pdf_file = pdfkit.from_string(pdf_html, False)
+
+    # Email PDF file
+    recipient_email = 'recipient@example.com'
+    message = f"Here is the form data as a PDF file."
+    command = f"echo '{message}' | mailx -s 'Form Data PDF' -a {pdf_file} {recipient_email}"
+    import os
+    os.system(command)
+
+    return make_response('Form data submitted successfully.')
+
+
+if __name__ == '__main__':
+    app.run(debug=True)
+
+##################
