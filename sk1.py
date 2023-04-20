@@ -135,3 +135,80 @@ def submit():
 
 if __name__ == '__main__':
     app.run(debug=True)
+
+
+
+№#######№############
+
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Input Form</title>
+    <style>
+        label {
+            display: block;
+            margin-bottom: 5px;
+        }
+        input[type="submit"] {
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Input Form</h1>
+    <form method="POST" action="{{ url_for('submit_form') }}">
+        {% for field in form_fields %}
+            <label>{{ field.name }}</label>
+            {% if field.type == 'text' %}
+                <input type="text" name="{{ field.field_name }}" required>
+            {% elif field.type == 'email' %}
+                <input type="email" name="{{ field.field_name }}" required>
+            {% elif field.type == 'number' %}
+                <input type="number" name="{{ field.field_name }}" required>
+            {% elif field.type == 'date' %}
+                <input type="date" name="{{ field.field_name }}" required>
+            {% endif %}
+        {% endfor %}
+        <input type="submit" value="Submit">
+    </form>
+</body>
+</html>
+
+############$$$$$$########
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Form Data</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+        th, td {
+            border: 1px solid black;
+            padding: 5px;
+        }
+        th {
+            background-color: #ccc;
+        }
+    </style>
+</head>
+<body>
+    <h1>Form Data</h1>
+    <table>
+        {% for key, value in form_data.items() %}
+            <tr>
+                <th>{{ key }}</th>
+                <td>{{ value }}</td>
+            </tr>
+        {% endfor %}
+    </table>
+</body>
+</html>
