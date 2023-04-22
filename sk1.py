@@ -266,3 +266,106 @@ if __name__ == '__main__':
     app.run(debug=True)
 
 ##################
+
+
+from flask import Flask, render_template, request, redirect, url_for, flash
+from flask_mysqldb import MySQL
+
+app = Flask(__name__)
+app.secret_key = 'mysecretkey'
+
+# Configure MySQL connection settings
+app.config['MYSQL_HOST'] = 'localhost'
+app.config['MYSQL_USER'] = 'root'
+app.config['MYSQL_PASSWORD'] = 'password'
+app.config['MYSQL_DB'] = 'mydatabase'
+
+# Create MySQL object
+mysql = MySQL(app)
+
+
+@app.route('/')
+def index():
+    # Fetch all tables from database
+    cursor = mysql.connection.cursor()
+    cursor.execute("SHOW TABLES")
+    tables = [row[0] for row in cursor.fetchall()]
+
+    return render_template('index.html', tables=tables)
+
+
+@app.route('/<table_name>')
+def table(table_name):
+    # Fetch table schema and data
+    cursor = mysql.connection.cursor()
+    cursor.execute(f"DESCRIBE {table_name}")
+    columns = [row[0] for row in cursor.fetchall()]
+
+    cursor.execute(f"SELECT * FROM {table_name}")
+    data = cursor.fetchall()
+
+    return render_template('table.html', table_name=table_name, columns=columns, data=data)
+
+
+@app.route('/<table_name>/add', methods=['GET', 'POST'])
+def add_row(table_name):
+    # Fetch column names from table
+    cursor = mysql.connection.cursor()
+    cursor.execute(f"DESCRIBE {table_name}")
+    columns = [row[0] for row in cursor.fetchall()]
+
+    if request.method == 'POST':
+        # Get form data
+        form_data = {}
+        for column in columns:
+            form_data[column] = request.form.get(column, '')
+
+        # Insert data into table
+        cursor.execute(f"INSERT INTO {table_name} ({', '.join(columns)}) VALUES ({', '.join(['%s'] * len(columns))})", tuple(form_data.values()))
+        mysql.connection.commit()
+
+        flash('Row added successfully.')
+        return redirect(url_for('table', table_name=table_name))
+
+    return render_template('add_row.html', table_name=table_name, columns=columns)
+
+
+@app.route('/<table_name>/edit/<int:row_id>', methods=['GET', 'POST'])
+def edit_row(table_name, row_id):
+    # Fetch column names and data for row with given ID
+    cursor = mysql.connection.cursor()
+    cursor.execute(f"DESCRIBE {table_name}")
+    columns = [row[0] for row in cursor.fetchall()]
+
+    cursor.execute(f"SELECT * FROM {table_name} WHERE id = %s", (row_id,))
+    row = cursor.fetchone()
+
+    if request.method == 'POST':
+        # Get form data
+        form_data = {}
+        for column in columns:
+            form_data[column] = request.form.get(column, '')
+
+        # Update row in table
+        set_clause = ', '.join([f"{column} = %s" for column in columns])
+        cursor.execute(f"UPDATE {table_name} SET {set_clause} WHERE id = %s", (*form_data.values(), row_id))
+        mysql.connection.commit()
+
+        flash('Row updated successfully.')
+        return redirect(url_for('table', table_name=table_name))
+
+    return render_template('edit_row.html', table_name=table_name, columns=columns, row=row)
+
+
+@app.route('/<table_name>/delete/<int:row_id>')
+def delete_row(table_name, row_id):
+    # Delete row with given ID from table
+    cursor = mysql.connection.cursor()
+    cursor.execute(f"DELETE FROM {table_name} WHERE id = %s", (row_id,))
+    mysql.connection.commit()
+
+    flash
+
+
+
+#####$##$############
