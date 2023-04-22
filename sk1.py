@@ -369,3 +369,111 @@ def delete_row(table_name, row_id):
 
 
 #####$##$############
+index.html 
+
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>MySQL Tables</title>
+  </head>
+  <body>
+    <h1>MySQL Tables</h1>
+    <ul>
+      {% for table_name in tables %}
+      <li><a href="{{ table_name }}">{{ table_name }}</a></li>
+      {% endfor %}
+    </ul>
+  </body>
+</html>
+
+
+table.html
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>{{ table_name }}</title>
+  </head>
+  <body>
+    <h1>{{ table_name }}</h1>
+    <table>
+      <thead>
+        <tr>
+          {% for column in columns %}
+          <th>{{ column }}</th>
+          {% endfor %}
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in data %}
+        <tr>
+          {% for value in row %}
+          <td>{{ value }}</td>
+          {% endfor %}
+          <td><a href="{{ url_for('edit_row', table_name=table_name, row_id=row[0]) }}">Edit</a></td>
+          <td><a href="{{ url_for('delete_row', table_name=table_name, row_id=row[0]) }}">Delete</a></td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    <a href="{{ url_for('add_row', table_name=table_name) }}">Add row</a>
+  </body>
+</html>
+
+addrow.html
+
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Add Row - {{ table_name }}</title>
+  </head>
+  <body>
+    <h1>Add Row - {{ table_name }}</h1>
+    <form method="post">
+      {% for column in columns %}
+      <div>
+        <label>{{ column }}</label>
+        {% if column == 'date' %}
+        <input type="date" name="{{ column }}" required>
+        {% elif column == 'integer' %}
+        <input type="number" name="{{ column }}" required>
+        {% else %}
+        <input type="text" name="{{ column }}" required>
+        {% endif %}
+      </div>
+      {% endfor %}
+      <button type="submit">Add Row</button>
+    </form>
+    <a href="{{ url_for('table', table_name=table_name) }}">Cancel</a>
+  </body>
+</html>
+
+editrow.html
+
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Edit Row - {{ table_name }}</title>
+  </head>
+  <body>
+    <h1>Edit Row - {{ table_name }}</h1>
+    <form method="post">
+      {% for column in columns %}
+      <div>
+        <label>{{ column }}</label>
+        {% if column == 'date' %}
+        <input type="date" name="{{ column }}" value="{{ row[columns.index(column)+1]|strftime('%Y-%m-%d') }}" required>
+        {% elif column == 'integer' %}
+        <input type="number" name="{{ column }}" value="{{ row[columns.index(column)+1] }}" required>
+        {% else %}
+        <input type="text" name="{{ column }}" value="{{ row[columns.index(column)+1] }}" required>
+        {% endif %}
+      </div>
+      {% endfor %}
+      <button type="submit">Update Row</button>
+    </form>
+    <a href="{{ url_for('table', table_name=table_name) }}">Cancel</a>
+  </body>
+</html
+
+
+
