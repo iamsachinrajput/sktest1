@@ -475,5 +475,40 @@ editrow.html
   </body>
 </html
 
+#######$#$ code for color change of cell and email .
 
+
+Private Sub Worksheet_Change(ByVal Target As Range)
+    ' Check if the cell that was changed is in column A
+    If Target.Column = 1 Then
+        ' Check if the cell's color was changed to red
+        If Target.Interior.Color = RGB(255, 0, 0) Then
+            ' Define variables for the email
+            Dim OutApp As Object
+            Dim OutMail As Object
+            Dim strbody As String
+            Dim sig As String
+            
+            ' Create the email object
+            Set OutApp = CreateObject("Outlook.Application")
+            Set OutMail = OutApp.CreateItem(0)
+            
+            ' Set the email body
+            strbody = "Hello," & vbCrLf & vbCrLf & "The cell at " & Target.Address & " has changed color to red."
+            sig = vbCrLf & vbCrLf & "Best regards," & vbCrLf & "Your Name"
+            
+            ' Set the email properties
+            With OutMail
+                .To = "recipient@example.com"
+                .Subject = "Cell color changed to red"
+                .Body = strbody & sig
+                .Send
+            End With
+            
+            ' Release the email object
+            Set OutMail = Nothing
+            Set OutApp = Nothing
+        End If
+    End If
+End Sub
 
