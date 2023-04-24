@@ -512,3 +512,54 @@ Private Sub Worksheet_Change(ByVal Target As Range)
     End If
 End Sub
 
+##########$$
+excel files consolidation .
+
+
+Sub ConsolidateData()
+    ' Define variables
+    Dim Path As String
+    Dim Filename As String
+    Dim wb As Workbook
+    Dim ws As Worksheet
+    Dim LastRow As Long
+    Dim i As Integer
+    Dim j As Integer
+    
+    ' Set the path to the folder containing the files
+    Path = "C:\MyFolder\"
+    
+    ' Set the filename pattern for the files to be consolidated
+    Filename = "*.xlsx"
+    
+    ' Set the worksheet to consolidate the data into
+    Set ws = ThisWorkbook.Sheets("Consolidated Data")
+    
+    ' Clear any existing data in the worksheet
+    ws.Cells.Clear
+    
+    ' Loop through all files in the folder with the specified filename pattern
+    Filename = Dir(Path & Filename)
+    Do While Filename <> ""
+        ' Open the file
+        Set wb = Workbooks.Open(Path & Filename)
+        
+        ' Loop through the rows in the specified columns of the worksheet
+        For i = 2 To wb.Sheets(1).Cells(Rows.Count, "A").End(xlUp).Row
+            ' Check if the value in column A is not blank
+            If Not IsEmpty(wb.Sheets(1).Range("A" & i).Value) Then
+                ' Copy the values from the specified columns to the consolidated worksheet
+                For j = 1 To 3 ' Change 3 to the last column you want to extract data from
+                    ws.Cells(LastRow + 1, j).Value = wb.Sheets(1).Cells(i, j).Value
+                Next j
+                LastRow = LastRow + 1
+            End If
+        Next i
+        
+        ' Close the file
+        wb.Close SaveChanges:=False
+        
+        ' Get the next filename
+        Filename = Dir()
+    Loop
+End Sub
